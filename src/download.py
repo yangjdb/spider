@@ -6,7 +6,6 @@ import requests
 import re
 from bs4 import BeautifulSoup
 
-
 def downloadImg(src, filePath):
 
     header = {
@@ -69,6 +68,8 @@ def downloadImg(src, filePath):
             count += 1
             time.sleep(3)
 
+imgList = set()
+
 def spiderDown(htmlCode, path):
     '''
     :param htmlCode:
@@ -101,19 +102,33 @@ def spiderDown(htmlCode, path):
     patter = re.compile(r'(https|http):\/\/i.pinimg.com\/originals\/[\w\-\.,@?^=%&:/~\+#]*.(jpg|png|jpeg)(?= 4x)')
 
     for a in all_a:
-        # 缩略图下载
-        srcSmall = a.get('src')
-        filename = srcSmall.split(r'/')[-1]
-        downloadImg(srcSmall, path + '/small/' + filename)
 
         # 高清原图下载
         srcSet = a.get('srcset')
-        result = patter.search(srcSet)
-        src = result.group(0)
+        if srcSet:
+            try:
+                result = patter.search(srcSet)
+                src = result.group(0)
+                filename = src.split(r'/')[-1]
+            except:
+                continue
 
-        filename = src.split(r'/')[-1]
-        downloadImg(src, path + '/' + filename)
-        count += 1
+            if not filename or filename in imgList:
+                # print(filename, 'error')
+                continue
+            else:
+                downloadImg(src, path + '/' + filename)
+
+            # 缩略图下载
+            try:
+                srcSmall = a.get('src')
+                filenameSmall = srcSmall.split(r'/')[-1]
+                downloadImg(srcSmall, path + '/small/' + filenameSmall)
+            except:
+                continue
+
+            imgList.add(filename)
+            count += 1
 
     return count
 
