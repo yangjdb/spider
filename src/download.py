@@ -3,7 +3,7 @@
 
 import time
 import requests
-import os
+import re
 from bs4 import BeautifulSoup
 
 
@@ -37,10 +37,15 @@ def downloadImg(src, filePath):
 
     proxy = {"http": "http://127.0.0.1:1080", "https": "https://127.0.0.1:1080"}
 
+    count = 0
+
     while True:  # 一直循环，知道访问站点成功
         try:
             # 以下except都是用来捕获当requests请求出现异常时，
             # 通过捕获然后等待网络情况的变化，以此来保护程序的不间断运行
+            if count >= 10:
+                print('下载：' + src + ' 失败，请手动下载')
+                break
             print('下载：' + src)
             html = requests.get(src, proxies=proxy, timeout=30)
             f = open(filePath, 'wb')
@@ -49,15 +54,19 @@ def downloadImg(src, filePath):
             break
         except requests.exceptions.SSLError:
             print('SSLError -- please wait 3 seconds')
+            count += 1
             time.sleep(3)
         except requests.exceptions.ConnectionError:
             print('ConnectionError -- please wait 3 seconds')
+            count += 1
             time.sleep(3)
         except requests.exceptions.ChunkedEncodingError:
             print('ChunkedEncodingError -- please wait 3 seconds')
+            count += 1
             time.sleep(3)
         except:
             print('Unfortunitely -- An Unknow Error Happened, Please wait 3 seconds')
+            count += 1
             time.sleep(3)
 
 def spiderDown(htmlCode, path):
@@ -89,9 +98,19 @@ def spiderDown(htmlCode, path):
     # all_a = soup.find_all('img', class_='_s3 _3o _2l _40')
 
     count = 0
+    patter = re.compile(r'(https|http):\/\/i.pinimg.com\/originals\/[\w\-\.,@?^=%&:/~\+#]*.(jpg|png|jpeg)(?= 4x)')
 
     for a in all_a:
-        src = a.get('src')  # 提取文本
+        # 缩略图下载
+        srcSmall = a.get('src')
+        filename = srcSmall.split(r'/')[-1]
+        downloadImg(srcSmall, path + '/small/' + filename)
+
+        # 高清原图下载
+        srcSet = a.get('srcset')
+        result = patter.search(srcSet)
+        src = result.group(0)
+
         filename = src.split(r'/')[-1]
         downloadImg(src, path + '/' + filename)
         count += 1

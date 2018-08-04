@@ -9,6 +9,25 @@ from selenium.webdriver.common.keys import Keys
 
 import download
 
+def mkTwoDirs (path, seachKey):
+    title = seachKey.strip().replace('?', '')
+    path = path + title
+    smallPath = path + '/small'
+
+    flag = 0
+    if (not os.path.exists(path)):
+        os.makedirs(path)
+        os.makedirs(smallPath)
+        flag = 1
+    else:
+        if (not os.path.exists(smallPath)):
+            os.makedirs(smallPath)
+            flag = 1
+
+    os.chdir(path)
+    os.chdir(smallPath)
+
+    return flag
 
 def searchFunc(seachKey, path, page):
 
@@ -48,27 +67,18 @@ def searchFunc(seachKey, path, page):
     time.sleep(5)
     # 目标页加载完成
 
-    title = seachKey
-    title = title.strip().replace('?', '')
-    path = path + title
-    if (os.path.exists(path)):
-        flag = 1
-    else:
-        os.makedirs(path)
-        flag = 0
-    os.chdir(path)
+    # 创建文件夹和缩略图文件夹
+    mkTwoDirs(path, seachKey)
 
-    count = 0
-
-    i = 1
-
+    # 计算当前网页滚动条页面数
     js1 = "var q=window.screen.availHeight;return(q)"
     clientScreenHeight = browser.execute_script(js1)
-
     js2 = "var q=document.body.offsetHeight;return(q)"
     clientBodyHeight = browser.execute_script(js2)
-
     currentPages = round(clientBodyHeight/clientScreenHeight)
+
+    count = 0
+    i = 1
 
     while (i <= page):
         print('准备扒取第 ' + str(i) + '页')

@@ -2,10 +2,9 @@
 # selenium + chromeDriver 实现自动登录网站搜索图片
 
 import search
-import download
 
 seachKey = '腿环tattoo'
-path = 'E:/tattoo/'
+path = 'D:/tattoo/'
 page = 5
 
 if __name__ == "__main__":
