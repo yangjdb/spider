@@ -7,7 +7,7 @@ import re
 
 # from bs4 import BeautifulSoup
 
-iterators = [30, 26, 12, 5]
+iterators = [50, 12, 8, 5]
 patter = re.compile(r'(https|http):\/\/i.pinimg.com\/originals\/[\w\-\.,@?^=%&:/~\+#]*.(jpg|png|jpeg)(?= 4x)')
 
 sumCount = 0
@@ -51,10 +51,10 @@ def downloadImg(src, filePath):
                 print('下载：' + src + ' 失败，请手动下载')
                 break
             print('下载：' + src)
-            # html = requests.get(src, proxies=proxy, timeout=30)
-            # f = open(filePath, 'wb')
-            # f.write(html.content)
-            # f.close()
+            html = requests.get(src, proxies=proxy, timeout=30)
+            f = open(filePath, 'wb')
+            f.write(html.content)
+            f.close()
             break
         except requests.exceptions.SSLError:
             print('SSLError -- please wait 3 seconds')
@@ -145,7 +145,10 @@ def spiderDown(browser, url, iterateIndex, path):
         if len(urlList) >= iterators[iterateIndex]:
             iterateIndex += 1
             for nestUrl in urlList:
-                spiderDown(browser, nestUrl, iterateIndex, path)
+                if nestUrl.find('www.pinterest.com') == -1:
+                    continue
+                else:
+                    spiderDown(browser, nestUrl, iterateIndex, path)
             break
         else:
             i += 1

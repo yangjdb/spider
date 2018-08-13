@@ -1,6 +1,6 @@
-import download
 import time
 import os
+import re
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 
@@ -8,6 +8,11 @@ if __name__ == "__main__":
     # 测试下载
     # with open('../resource/index.html', 'rb') as foo_file:
     #     result = download.spiderDown(foo_file, 'test')
+
+    print(re.match('sfef232876s98f7wf24', 'www.pinterest.com'))
+    print('sfef232876s98f7wf24'.find('absdf'))
+    exit()
+
 
     options = webdriver.ChromeOptions()
     prefs = {
