@@ -97,7 +97,7 @@ def spiderDown(browser, url, iterateIndex, path):
     #     print('已经保存完毕，跳过')
     #     continue21
 
-    if iterateIndex >= 3:
+    if iterateIndex > 3:
         return
 
     imgList = set()
@@ -114,6 +114,9 @@ def spiderDown(browser, url, iterateIndex, path):
         # nodes = browser.find_element_by_xpath("//div[@class='gridCentered']/").find_elements_by_xpath("//div[@class='pinWrapper']")
 
         for node in nodes:
+
+            if len(urlList) >= iterators[iterateIndex]:
+                break
 
             try:
                 urlList.add(node.find_element_by_tag_name('a').get_property('href'))
