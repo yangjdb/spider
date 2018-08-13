@@ -5,8 +5,7 @@ import search
 
 seachKey = '腿环tattoo'
 seachKey = 'dream catcher'
-path = 'D:/tattoo/'
-page = 10
+path = 'E:/tattoo'
 
 if __name__ == "__main__":
-    htmlCode = search.searchFunc(seachKey, path, page)
+    htmlCode = search.main(seachKey, path)

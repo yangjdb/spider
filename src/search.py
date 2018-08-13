@@ -9,10 +9,8 @@ from selenium.webdriver.common.keys import Keys
 
 import download
 
-def mkTwoDirs (path, seachKey):
-    title = seachKey.strip().replace('?', '')
-    path = path + title
-    smallPath = path + '/small'
+def mkTwoDirs (path):
+    smallPath = path + '/' + 'small'
 
     flag = 0
     if (not os.path.exists(path)):
@@ -29,8 +27,7 @@ def mkTwoDirs (path, seachKey):
 
     return flag
 
-def searchFunc(seachKey, path, page):
-
+def simulateLogin(seachKey):
     # chrome options
     # 阻止chrome弹窗通知
     options = webdriver.ChromeOptions()
@@ -41,7 +38,8 @@ def searchFunc(seachKey, path, page):
             }
     }
     options.add_experimental_option('prefs', prefs)
-    browser = webdriver.Chrome(executable_path='C:\Program Files (x86)\Google\Chrome\Application\chromedriver.exe', chrome_options=options)
+    browser = webdriver.Chrome(executable_path='C:\Program Files (x86)\Google\Chrome\Application\chromedriver.exe',
+                               chrome_options=options)
     # 浏览器最大化
     browser.maximize_window()
     print('打开浏览器')
@@ -66,9 +64,25 @@ def searchFunc(seachKey, path, page):
     print('开始搜索：' + seachKey)
     time.sleep(5)
     # 目标页加载完成
+    return browser
+
+def main(seachKey, path):
+
+    # 模拟登陆
+    browser = simulateLogin(seachKey)
+
+    title = seachKey.strip().replace('?', '')
+    path = path + '/' + title
 
     # 创建文件夹和缩略图文件夹
-    mkTwoDirs(path, seachKey)
+    mkTwoDirs(path)
+
+    # [50, 10 , 8, 5]
+    download.spiderDown(browser, browser.current_url, 0, path)
+
+    return
+
+
 
     # 计算当前网页滚动条页面数
     js1 = "var q=window.screen.availHeight;return(q)"

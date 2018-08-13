@@ -1,13 +1,18 @@
 # Created at 2018/8/2
-#coding=utf-8
+# coding=utf-8
 
 import time
 import requests
 import re
-from bs4 import BeautifulSoup
+
+# from bs4 import BeautifulSoup
+
+iterators = [30, 26, 12, 5]
+patter = re.compile(r'(https|http):\/\/i.pinimg.com\/originals\/[\w\-\.,@?^=%&:/~\+#]*.(jpg|png|jpeg)(?= 4x)')
+
+sumCount = 0
 
 def downloadImg(src, filePath):
-
     header = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.87 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
@@ -46,10 +51,10 @@ def downloadImg(src, filePath):
                 print('下载：' + src + ' 失败，请手动下载')
                 break
             print('下载：' + src)
-            html = requests.get(src, proxies=proxy, timeout=30)
-            f = open(filePath, 'wb')
-            f.write(html.content)
-            f.close()
+            # html = requests.get(src, proxies=proxy, timeout=30)
+            # f = open(filePath, 'wb')
+            # f.write(html.content)
+            # f.close()
             break
         except requests.exceptions.SSLError:
             print('SSLError -- please wait 3 seconds')
@@ -68,22 +73,19 @@ def downloadImg(src, filePath):
             count += 1
             time.sleep(3)
 
-imgList = set()
 
-def spiderDown(htmlCode, path):
+def spiderDown(browser, url, iterateIndex, path):
     '''
-    :param htmlCode:
-    :param path:
+    :param browser:
+    :param url:
+    :param iterator:
     :return:
     '''
-    if not htmlCode:
-        print('htmlCode is null error')
-        return
 
     # html = requests.get(url, headers=header, cookies=cookies, proxies=proxy)
     # html.encoding = 'utf-8'
 
-    soup = BeautifulSoup(htmlCode, 'html.parser')
+    # soup = BeautifulSoup(browser, 'html.parser')
 
     # print(soup)  # 输出响应的html对象
     # print(soup.prettify())  # 使用prettify()格式化显示输出
@@ -93,42 +95,61 @@ def spiderDown(htmlCode, path):
 
     # if (flag == 1 and len(os.listdir(path + title)) >= int(pic_max)):
     #     print('已经保存完毕，跳过')
-    #     continue
+    #     continue21
 
-    all_a = soup.find('div', class_='gridCentered').find_all('img', class_='_s3 _3o _2l _40')
-    # all_a = soup.find_all('img', class_='_s3 _3o _2l _40')
+    if iterateIndex >= 3:
+        return
 
-    count = 0
-    patter = re.compile(r'(https|http):\/\/i.pinimg.com\/originals\/[\w\-\.,@?^=%&:/~\+#]*.(jpg|png|jpeg)(?= 4x)')
+    imgList = set()
+    urlList = set()
+    i = 0
 
-    for a in all_a:
+    print('打开URL: ', url)
+    browser.get(url)
+    # time.sleep(8)
+    browser.implicitly_wait(6)
 
-        # 高清原图下载
-        srcSet = a.get('srcset')
-        if srcSet:
+    while True:
+        nodes = browser.find_element_by_class_name('gridCentered').find_elements_by_class_name('pinWrapper')
+        # nodes = browser.find_element_by_xpath("//div[@class='gridCentered']/").find_elements_by_xpath("//div[@class='pinWrapper']")
+
+        for node in nodes:
+
             try:
-                result = patter.search(srcSet)
-                src = result.group(0)
-                filename = src.split(r'/')[-1]
+                urlList.add(node.find_element_by_tag_name('a').get_property('href'))
+                srcSet = node.find_element_by_tag_name('img').get_property('srcset')
+                srcSmall = node.find_element_by_tag_name('img').get_property('src')
+                if srcSet and srcSmall:
+                    result = patter.search(srcSet)
+                    src = result.group(0)
+                    filename = src.split(r'/')[-1]
+                    filenameSmall = srcSmall.split(r'/')[-1]
+
+                    if not filename:
+                        # print(filename, 'error')
+                        continue
+                    else:
+                        if filename not in imgList:
+                            imgList.add(filename)
+                        else:
+                            continue
+                        downloadImg(src, path + '/' + filename)
+                        downloadImg(srcSmall, path + '/small/' + filenameSmall)
+                        global sumCount
+                        sumCount += 1
             except:
                 continue
 
-            if not filename or filename in imgList:
-                # print(filename, 'error')
-                continue
-            else:
-                downloadImg(src, path + '/' + filename)
+        print('已下载：', sumCount)
 
-            # 缩略图下载
-            try:
-                srcSmall = a.get('src')
-                filenameSmall = srcSmall.split(r'/')[-1]
-                downloadImg(srcSmall, path + '/small/' + filenameSmall)
-            except:
-                continue
-
-            imgList.add(filename)
-            count += 1
-
-    return count
-
+        if len(urlList) >= iterators[iterateIndex]:
+            iterateIndex += 1
+            for nestUrl in urlList:
+                spiderDown(browser, nestUrl, iterateIndex, path)
+            break
+        else:
+            i += 1
+            browser.execute_script('window.scrollBy(0, window.screen.height-220)')
+            print('滚动第 ' + str(i) + ' 次')
+            time.sleep(2)
+            continue
