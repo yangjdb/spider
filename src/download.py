@@ -4,10 +4,11 @@
 import time
 import requests
 import re
+import os
 
 # from bs4 import BeautifulSoup
 
-iterators = [50, 12, 8, 5]
+iterators = [3, 3, 3, 3]
 patter = re.compile(r'(https|http):\/\/i.pinimg.com\/originals\/[\w\-\.,@?^=%&:/~\+#]*.(jpg|png|jpeg)(?= 4x)')
 
 sumCount = 0
@@ -73,31 +74,9 @@ def downloadImg(src, filePath):
             count += 1
             time.sleep(3)
 
-
 def spiderDown(browser, url, iterateIndex, path):
-    '''
-    :param browser:
-    :param url:
-    :param iterator:
-    :return:
-    '''
 
-    # html = requests.get(url, headers=header, cookies=cookies, proxies=proxy)
-    # html.encoding = 'utf-8'
-
-    # soup = BeautifulSoup(browser, 'html.parser')
-
-    # print(soup)  # 输出响应的html对象
-    # print(soup.prettify())  # 使用prettify()格式化显示输出
-
-    # with open('../resource/index.html', 'rb') as foo_file:
-    #     soup = BeautifulSoup(foo_file.read(), "html.parser")
-
-    # if (flag == 1 and len(os.listdir(path + title)) >= int(pic_max)):
-    #     print('已经保存完毕，跳过')
-    #     continue21
-
-    if iterateIndex > 3:
+    if iterateIndex > 1:
         return
 
     imgList = set()
@@ -128,8 +107,9 @@ def spiderDown(browser, url, iterateIndex, path):
                     filename = src.split(r'/')[-1]
                     filenameSmall = srcSmall.split(r'/')[-1]
 
-                    if not filename:
-                        # print(filename, 'error')
+                    # 如果不存在文件名或者该图片已经下载则循环继续
+                    if not filename or os.path.exists(path + '/' + filename):
+                        print('该文件已经下载: ', path + '/' + filename)
                         continue
                     else:
                         if filename not in imgList:
