@@ -74,31 +74,38 @@ def downloadImg(src, filePath):
             count += 1
             time.sleep(3)
 
-def spiderDown(browser, url, iterateIndex, path):
 
-    if iterateIndex > 1:
-        return
+def spiderDown(browser, url, iterateIndex, path):
 
     imgList = set()
     urlList = set()
-    i = 0
+
+    retryCount = 0
+    pageDownCount = 0
 
     print('打开URL: ', url)
     browser.get(url)
     # time.sleep(8)
-    browser.implicitly_wait(6)
+    browser.implicitly_wait(5)
 
     while True:
-        nodes = browser.find_element_by_class_name('gridCentered').find_elements_by_class_name('pinWrapper')
+        try:
+            if retryCount > 5:
+                break
+            nodes = browser.find_element_by_class_name('gridCentered').find_elements_by_class_name('pinWrapper')
+        except:
+            time.sleep(5)
+            retryCount += 1
+            print('excepiton: 重试第', retryCount, ' 次')
+            continue
         # nodes = browser.find_element_by_xpath("//div[@class='gridCentered']/").find_elements_by_xpath("//div[@class='pinWrapper']")
 
         for node in nodes:
 
-            if len(urlList) >= iterators[iterateIndex]:
+            if len(imgList) >= iterators[iterateIndex]:
                 break
 
             try:
-                urlList.add(node.find_element_by_tag_name('a').get_property('href'))
                 srcSet = node.find_element_by_tag_name('img').get_property('srcset')
                 srcSmall = node.find_element_by_tag_name('img').get_property('src')
                 if srcSet and srcSmall:
@@ -106,6 +113,8 @@ def spiderDown(browser, url, iterateIndex, path):
                     src = result.group(0)
                     filename = src.split(r'/')[-1]
                     filenameSmall = srcSmall.split(r'/')[-1]
+
+                    urlList.add(node.find_element_by_tag_name('a').get_property('href'))
 
                     # 如果不存在文件名或者该图片已经下载则循环继续
                     if not filename or os.path.exists(path + '/' + filename):
@@ -123,19 +132,18 @@ def spiderDown(browser, url, iterateIndex, path):
             except:
                 continue
 
-        print('已下载：', sumCount)
 
-        if len(urlList) >= iterators[iterateIndex]:
-            iterateIndex += 1
+        if len(imgList) >= iterators[iterateIndex]:
+            nextIterateIndex = iterateIndex + 1
+            if nextIterateIndex > 3:
+                break
             for nestUrl in urlList:
-                if nestUrl.find('www.pinterest.com') == -1:
-                    continue
-                else:
-                    spiderDown(browser, nestUrl, iterateIndex, path)
+                if nestUrl.find('www.pinterest.com') != -1:
+                    spiderDown(browser, nestUrl, nextIterateIndex, path)
             break
         else:
-            i += 1
-            browser.execute_script('window.scrollBy(0, window.screen.height-220)')
-            print('滚动第 ' + str(i) + ' 次')
+            pageDownCount += 1
+            browser.execute_script('window.scrollBy(0, window.screen.height-50)')
+            print('滚动第 ' + str(pageDownCount) + ' 次')
             time.sleep(2)
             continue

@@ -8,6 +8,17 @@ if __name__ == "__main__":
     # 测试下载
     # with open('../resource/index.html', 'rb') as foo_file:
     #     result = download.spiderDown(foo_file, 'test')
+    while True:
+        for i in range(5):
+            print("i: ", i)
+            time.sleep(2)
+            if i == 3:
+                break
+        break
+
+
+
+
 
     print(re.match('sfef232876s98f7wf24', 'www.pinterest.com'))
     print('sfef232876s98f7wf24'.find('absdf'))

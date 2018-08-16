@@ -3,7 +3,7 @@
 
 import spider
 
-path = 'D:/tattoo'
+path = 'E:/tattoo'
 
 if __name__ == "__main__":
     htmlCode = spider.main(path)
